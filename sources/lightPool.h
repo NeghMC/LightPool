@@ -33,8 +33,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define LP_OVERHEAD (1)
-
 typedef struct {
     uint8_t topIndex; // index of the first buffer
     uint8_t count; // number of buffers
@@ -42,7 +40,7 @@ typedef struct {
 	uint8_t *memory; // pointer to the memory location of the pool
 } pool_t;
 
-void pool_init(pool_t *pool, void *buffer, uint8_t buffersCount, size_t bufferSize);
+bool pool_init(pool_t *pool, void *memory, uint8_t buffersCount, size_t bufferSize);
 bool pool_isEmpty(pool_t *pool);
 void * pool_allocate(pool_t *pool);
 bool pool_free(pool_t *pool, void *buffer);

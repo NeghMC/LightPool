@@ -4,7 +4,7 @@
 
 // library declarations
 #define BUFFERS_COUNT (10)
-#define BUFFER_SIZE (10 + LP_OVERHEAD)
+#define BUFFER_SIZE (10)
 
 pool_t pool;
 char buffer[BUFFER_SIZE * BUFFERS_COUNT];

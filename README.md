@@ -10,7 +10,7 @@ Pool here is a set of buffers of the same size, which can be rented / allocated 
 ### Limitations
 
 * All buffers in the pool are the same size.
-* Maximum number of buffers is 255.
+* Maximum number of buffers is 254.
 
 <!-- USAGE EXAMPLES -->
 ## Usage
@@ -23,8 +23,9 @@ Example usage can be seen in `tests` folder.
 - [x] Create first public version
 - [ ] Add proper unit tests
 - [ ] Add advanced test (either simulated or emulated)
+- [ ] Add control of number of buffers
 
 <!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See `LICENSE.txt` for more information.
+Distributed under the MIT License. See `LICENSE` for more information.

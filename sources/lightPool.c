@@ -29,29 +29,38 @@
 #include "lightPool.h"
 
 #define POOL_NONE ((uint8_t)0xff)
+#define POOL_MAX ((uint8_t)0x254)
 
 /// Initializes the pool
-/// @param pointer to an instance of pool_t
-/// @param linear buffer for all elements in size of 'count' * 'size' bytes
-/// @param number of elements in the pool
-/// @param size of an element in the pool
+/// @param p pointer to an instance of pool_t
+/// @param memory linear buffer for all elements in size of 'count' * 'size' bytes
+/// @param buffersCount number of elements in the pool
+/// @param bufferSize size of an element in the pool
 /// @note element size must be greater than actual size by POOL_OVERHEAD
-void pool_init(pool_t *p, void *memory, uint8_t buffersCount, size_t bufferSize)
+bool pool_init(pool_t *p, void *memory, uint8_t buffersCount, size_t bufferSize)
 {
+    if(buffersCount > POOL_MAX)
+    {
+        return false;
+    }
+
     p->memory = (uint8_t *)memory;
     p->count = buffersCount;
     p->size = bufferSize;
     p->topIndex = 0;
     
+    // first byte contains number of the next buffer
     for(uint8_t i = 0; i < (buffersCount - 1); ++i)
     {
-        p->memory[i*bufferSize] = i+1;
+        p->memory[i * bufferSize] = i + 1;
     }
     p->memory[(buffersCount - 1) * bufferSize] = POOL_NONE;
+
+    return true;
 }
 
 /// Checks if pool is empty
-/// @param pointer to an instance of pool_t
+/// @param p pointer to an instance of pool_t
 /// @return true if pool is empty, false otherwise
 bool pool_isEmpty(pool_t *p)
 {
@@ -59,36 +68,41 @@ bool pool_isEmpty(pool_t *p)
 }
 
 /// Gets first empty buffer from the pool
-/// @param pointer to an instance of pool_t
+/// @param p pointer to an instance of pool_t
 /// @return pointer to the allocated element
 void * pool_allocate(pool_t *p)
 {
     if(pool_isEmpty(p))
         return NULL;
     
-    uint8_t *toReturn = p->memory + (p->topIndex * p->size);
-    
-    uint8_t temp = p->topIndex;
-    p->topIndex = toReturn[0]; // first byte points to second free buffer
-    toReturn[0] = temp;
-    
-    return toReturn + 1;
+    uint8_t *buffer = p->memory + (p->topIndex * p->size);
+    p->topIndex = buffer[0]; // first byte points to the next free buffer
+    return buffer;
 }
 
 /// Gives buffer back to pool
-/// @param pointer to an instance of pool_t
-/// @param pointer to a buffer
+/// @param p pointer to an instance of pool_t
+/// @param buffer to a buffer
 /// @return true successfully freed, false otherwise
 bool pool_free(pool_t *p, void *buffer)
 {
-    uint8_t *actualBuffer = (uint8_t*)buffer - 1;
-    if(actualBuffer < p->memory || (actualBuffer >= p->memory + (p->count * p->size)))
-    { // not our buffer
+    size_t bufferId;
+
+    // validate pointer and calculate buffer number (ID)
+    if((size_t)buffer < (size_t)p->memory)
+    {
         return false;
     }
-    
-    uint8_t temp = actualBuffer[0];
-    actualBuffer[0] = p->topIndex;
-    p->topIndex = temp; 
+    else
+    {
+        bufferId = ((size_t)buffer - (size_t)p->memory) / p->size;
+        if(bufferId > POOL_MAX)
+        {
+            return false;
+        }
+    }
+
+    ((uint8_t *)buffer)[0] = p->topIndex;
+    p->topIndex = bufferId; 
     return true;  
 }
